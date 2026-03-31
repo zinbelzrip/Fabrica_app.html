@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Fábrica App</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#1e3c72;padding:16px}
+        .app{max-width:1200px;margin:0 auto;background:white;border-radius:24px;overflow:hidden}
+        .header{background:#2a5298;color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+        .logo h1{font-size:1.3rem}
+        .logo p{font-size:0.7rem;opacity:0.9}
+        .logout-btn{background:rgba(255,255,255,0.2);border:none;padding:6px 12px;border-radius:20px;color:white;cursor:pointer}
+        .tabs{display:flex;background:#f8f9fa;border-bottom:2px solid #e9ecef;flex-wrap:wrap}
+        .tab{flex:1;padding:12px;background:none;border:none;cursor:pointer;font-weight:600;color:#6c757d;font-size:0.8rem}
+        .tab.active{background:white;color:#2a5298;border-bottom:3px solid #2a5298}
+        .panel{display:none;padding:16px}
+        .panel.active{display:block}
+        .sub-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #dee2e6;padding-bottom:8px}
+        .sub-tab{background:#e9ecef;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:0.8rem;width:auto}
+        .sub-tab.active{background:#2a5298;color:white}
+        .meses{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-bottom:16px}
+        .mes-btn{background:#2d5a2c;color:white;border:none;padding:4px 8px;border-radius:16px;cursor:pointer;font-size:0.65rem;font-weight:500}
+        .mes-btn.activo{background:#c41e3a}
+        table{width:100%;border-collapse:collapse}
+        th{background:#2d5a2c;color:white;padding:10px 5px;border:1px solid #4a7a4a}
+        td{border:1px solid #c4a27a;text-align:center;padding:12px 4px;cursor:pointer}
+        .num{font-size:1.2rem;font-weight:bold;display:block}
+        .nota-icon{font-size:0.7rem;margin-top:4px}
+        .fondo-blanco{background:white}
+        .fondo-gris{background:#d3d3d3}
+        .fondo-naranja{background:#ffd966}
+        .fondo-amarillo{background:#fff2b5}
+        .fondo-azul-claro{background:#b8e1fc}
+        .negro{color:black}
+        .rojo{color:#c41e3a}
+        .verde{color:#2d8c2d}
+        .panel-notas{margin-top:16px;padding:12px;background:#f5f5dc;border-radius:12px}
+        .panel-notas textarea{width:100%;padding:8px;border:1px solid #c4a27a;border-radius:8px;margin-top:8px;font-family:inherit}
+        .btn{background:#2d5a2c;color:white;border:none;padding:8px;border-radius:20px;cursor:pointer;margin-top:8px;width:100%}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+        .stat-card{background:#2a5298;color:white;padding:16px;border-radius:12px;text-align:center}
+        .chat{height:400px;display:flex;flex-direction:column;border:1px solid #dee2e6;border-radius:12px;overflow:hidden}
+        .chat-msgs{flex:1;overflow-y:auto;padding:12px;background:#f8f9fa}
+        .msg{margin-bottom:10px;display:flex;flex-direction:column}
+        .msg.envio{align-items:flex-end}
+        .msg.recibe{align-items:flex-start}
+        .bubble{max-width:70%;padding:8px 12px;border-radius:16px}
+        .envio .bubble{background:#2a5298;color:white}
+        .recibe .bubble{background:white;border:1px solid #dee2e6}
+        .chat-input{display:flex;padding:8px;gap:8px;background:white}
+        .chat-input input{flex:1;padding:8px;border:1px solid #dee2e6;border-radius:20px}
+        .chat-input button{width:auto;padding:8px 16px;background:#2a5298;color:white;border:none;border-radius:20px;cursor:pointer}
+        .users{display:flex;flex-direction:column;gap:8px}
+        .user-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:10px;cursor:pointer}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:1000}
+        .modal-content{background:white;padding:24px;border-radius:20px;max-width:350px;width:90%}
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;margin-bottom:4px;font-weight:600}
+        .form-group input{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+        .password-container{position:relative;display:flex;align-items:center}
+        .password-container input{flex:1;padding-right:40px}
+        .toggle-password{position:absolute;right:10px;cursor:pointer;font-size:20px;user-select:none}
+        .error{color:red;font-size:0.75rem;text-align:center;margin-top:8px}
+        .toast{position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:10px 16px;border-radius:8px;z-index:2000}
+        button{background:#2a5298;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;width:100%}
+        .btn-sec{background:#6c757d;margin-top:8px}
+        .nombre-especial{font-size:1.2rem;font-weight:bold;text-align:center;margin:8px 0;padding:8px;background:#f0f0f0;border-radius:12px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap}
+        @media(max-width:600px){.num{font-size:1rem} .mes-btn{font-size:0.6rem;padding:3px 6px} .nombre-especial{font-size:0.9rem;gap:15px}}
+        input, textarea, button {font-size:16px}
+    </style>
+</head>
+<body>
+<div class="app" id="app" style="display:none">
+    <div class="header">
+        <div class="logo"><h1>🏭 Fábrica App</h1><p id="userNameDisplay"></p></div>
+        <button class="logout-btn" id="logoutBtn">🚪 Salir</button>
+    </div>
+    
+    <div class="nombre-especial" id="nombresEspeciales"></div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="calendario">📅 Calendario</button>
+        <button class="tab" data-tab="resumen">📊 Resumen</button>
+        <button class="tab" data-tab="chat">💬 Chat General</button>
+        <button class="tab" data-tab="privados">👥 Chats Privados</button>
+    </div>
+    <div class="panel active" id="panel-calendario">
+        <div class="meses" id="mesesNav"></div>
+        <div style="overflow-x:auto">
+            <table id="calendario">
+                <thead>
+                    <tr><th>LUN</th><th>MAR</th><th>MIÉ</th><th>JUE</th><th>VIE</th><th>SÁB</th><th>DOM</th></tr>
+                </thead>
+                <tbody id="calendarioBody"></tbody>
+            </table>
+        </div>
+        <div class="panel-notas"><h4>📝 Día seleccionado</h4><p id="fechaSel">Haz clic en un día</p><textarea id="notaTexto" rows="2" placeholder="Añadir nota... Para cumpleaños escribe 'cumpleaños' en la nota"></textarea><button class="btn" id="guardarNota">💾 Guardar nota</button></div>
+    </div>
+    <div class="panel" id="panel-resumen">
+        <div class="sub-tabs">
+            <button class="sub-tab active" data-sub="laboral">📋 Laboral</button>
+            <button class="sub-tab" data-sub="cumpleaños">🎂 Cumpleaños</button>
+        </div>
+        <div id="sub-laboral">
+            <div class="stats"><div class="stat-card"><h4>Horas Extras</h4><div id="totalExtras">0</div></div><div class="stat-card"><h4>Vacaciones</h4><div id="totalVac">0</div></div><div class="stat-card"><h4>Asuntos Propios</h4><div id="totalAsu">0</div></div></div>
+            <div id="detalleNotas"></div>
+        </div>
+        <div id="sub-cumpleaños" style="display:none">
+            <div class="stats"><div class="stat-card"><h4>🎂 Cumpleaños</h4><div id="totalCumples">0</div></div></div>
+            <div id="detalleCumples"></div>
+        </div>
+    </div>
+    <div class="panel" id="panel-chat"><div class="chat"><div class="chat-msgs" id="chatMsgs"></div><div class="chat-input"><input type="text" id="chatInput" placeholder="Escribe un mensaje..."><button id="sendChat">Enviar</button></div></div></div>
+    <div class="panel" id="panel-privados"><div class="users" id="usersList"></div><div id="chatPrivadoPanel" style="display:none;margin-top:16px"><h4>Chat con <span id="chatCon"></span></h4><div class="chat" style="height:300px"><div class="chat-msgs" id="privMsgs"></div><div class="chat-input"><input type="text" id="privInput" placeholder="Escribe..."><button id="sendPriv">Enviar</button></div></div><button class="btn-sec" id="cerrarPriv">Cerrar chat</button></div></div>
+</div>
+
+<!-- Modal de Login con ojo en contraseñas -->
+<div id="loginModal" class="modal"><div class="modal-content"><h2 style="text-align:center">🏭 Fábrica App</h2>
+    <div id="loginForm">
+        <div class="form-group"><label>📧 Email</label><input type="email" id="loginEmail" autocomplete="off"></div>
+        <div class="form-group"><label>🔒 Contraseña</label>
+            <div class="password-container">
+                <input type="password" id="loginPass">
+                <span class="toggle-password" onclick="togglePassword('loginPass', this)">👁️</span>
+            </div>
+        </div>
+        <div id="loginError" class="error"></div>
+        <button id="loginBtn">Iniciar Sesión</button>
+        <button id="showRegBtn" class="btn-sec">Registrarse</button>
+    </div>
+    <div id="registerForm" style="display:none">
+        <div class="form-group"><label>👤 Nombre</label><input type="text" id="regNombre"></div>
+        <div class="form-group"><label>📧 Email</label><input type="email" id="regEmail"></div>
+        <div class="form-group"><label>🏭 Departamento</label><input type="text" id="regDepto"></div>
+        <div class="form-group"><label>🔒 Contraseña</label>
+            <div class="password-container">
+                <input type="password" id="regPass">
+                <span class="toggle-password" onclick="togglePassword('regPass', this)">👁️</span>
+            </div>
+        </div>
+        <div id="regError" class="error"></div>
+        <button id="regBtn">Registrarse</button>
+        <button id="showLoginBtn" class="btn-sec">Volver</button>
+    </div>
+</div></div>
+
+<script>
+// ==================== FUNCIÓN PARA MOSTRAR/OCULTAR CONTRASEÑA ====================
+function togglePassword(inputId, element) {
+    var input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        element.textContent = "🙈";
+    } else {
+        input.type = "password";
+        element.textContent = "👁️";
+    }
+}
+
+// ==================== DATOS GLOBALES ====================
+var usuarioActual = null;
+var usuarios = [];
+var notas = {};
+var mensajes = [];
+var chatsPriv = {};
+
+// Función para detectar si una nota es de cumpleaños
+function esCumpleaños(texto) {
+    if (!texto) return false;
+    var lower = texto.toLowerCase();
+    return lower.indexOf('cumpleaños') !== -1 || lower.indexOf('cumple') !== -1;
+}
+
+function mostrarNombresEspeciales() {
+    var antonio = '<span style="font-weight:bold">ANTONIO:</span> <span style="color:black">M</span> <span style="color:#c41e3a">N</span> <span style="color:#2d8c2d">T</span>';
+    var mario = '<span style="font-weight:bold">MARIO:</span> <span style="color:black">T</span> <span style="color:#c41e3a">M</span> <span style="color:#2d8c2d">N</span>';
+    var patxi = '<span style="font-weight:bold">PATXI:</span> <span style="color:black">N</span> <span style="color:#c41e3a">T</span> <span style="color:#2d8c2d">M</span>';
+    document.getElementById('nombresEspeciales').innerHTML = '<div style="display:flex; justify-content:center; gap:30px; flex-wrap:wrap;"><div>' + antonio + '</div><div>' + mario + '</div><div>' + patxi + '</div></div>';
+}
+
+// ==================== CALENDARIO 2026 ====================
+var meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+var mesesDias = [31,28,31,30,31,30,31,31,30,31,30,31];
+var mesesInicio = [3,6,6,2,4,0,2,5,1,3,6,1];
+
+var fondosNaranja = {
+    '0-1':1, '0-6':1,
+    '2-19':1,
+    '3-2':1, '3-3':1, '3-6':1,
+    '4-1':1,
+    '9-12':1,
+    '10-2':1,
+    '11-3':1, '11-8':1, '11-25':1
+};
+
+var fondosAmarillos = {
+    '0-2':1, '0-5':1,
+    '3-7':1, '3-8':1, '3-9':1, '3-10':1,
+    '11-24':1, '11-28':1, '11-29':1, '11-30':1, '11-31':1
+};
+
+var fondosAzulClaro = {
+    '6-6':1, '6-7':1, '6-8':1, '6-9':1, '6-10':1, '6-11':1, '6-12':1, '6-13':1, '6-14':1,
+    '7-10':1, '7-11':1, '7-12':1, '7-13':1, '7-14':1, '7-15':1, '7-16':1, '7-17':1, '7-18':1, '7-19':1,
+    '7-20':1, '7-21':1, '7-22':1, '7-23':1, '7-24':1, '7-25':1, '7-26':1, '7-27':1, '7-28':1, '7-29':1, '7-30':1
+};
+
+var coloresSemana = {
+    1:'negro',2:'rojo',3:'verde',4:'negro',5:'rojo',6:'verde',7:'negro',8:'rojo',9:'verde',
+    10:'negro',11:'rojo',12:'verde',13:'negro',14:'rojo',15:'verde',16:'negro',17:'rojo',18:'verde',
+    19:'negro',20:'rojo',21:'verde',22:'negro',23:'rojo',24:'verde',25:'negro',26:'rojo',27:'verde',
+    28:'negro',29:'rojo',30:'verde',31:'negro',32:'rojo',33:'verde',34:'negro',35:'rojo',36:'verde',
+    37:'negro',38:'rojo',39:'verde',40:'negro',41:'rojo',42:'verde',43:'negro',44:'rojo',45:'verde',
+    46:'negro',47:'rojo',48:'verde',49:'negro',50:'rojo',51:'verde',52:'negro',53:'rojo'
+};
+
+var semanaDia = {
+    '0-1':1,'0-2':1,'0-5':2,'0-6':2,'0-7':2,'0-8':2,'0-9':2,'0-12':3,'0-13':3,'0-14':3,'0-15':3,'0-16':3,
+    '0-19':4,'0-20':4,'0-21':4,'0-22':4,'0-23':4,'0-26':5,'0-27':5,'0-28':5,'0-29':5,'0-30':5,
+    '1-2':6,'1-3':6,'1-4':6,'1-5':6,'1-6':6,'1-9':7,'1-10':7,'1-11':7,'1-12':7,'1-13':7,
+    '1-16':8,'1-17':8,'1-18':8,'1-19':8,'1-20':8,'1-23':9,'1-24':9,'1-25':9,'1-26':9,'1-27':9,
+    '2-2':10,'2-3':10,'2-4':10,'2-5':10,'2-6':10,'2-9':11,'2-10':11,'2-11':11,'2-12':11,'2-13':11,
+    '2-16':12,'2-17':12,'2-18':12,'2-19':12,'2-20':12,'2-23':13,'2-24':13,'2-25':13,'2-26':13,'2-27':13,
+    '2-30':14,'2-31':14,'3-1':14,'3-2':14,'3-3':14,'3-4':14,'3-5':14,'3-6':15,'3-7':15,'3-8':15,'3-9':15,'3-10':15,
+    '3-13':16,'3-14':16,'3-15':16,'3-16':16,'3-17':16,'3-20':17,'3-21':17,'3-22':17,'3-23':17,'3-24':17,
+    '3-27':18,'3-28':18,'3-29':18,'3-30':18,'4-4':19,'4-5':19,'4-6':19,'4-7':19,'4-8':19,
+    '4-11':20,'4-12':20,'4-13':20,'4-14':20,'4-15':20,'4-18':21,'4-19':21,'4-20':21,'4-21':21,'4-22':21,
+    '4-25':22,'4-26':22,'4-27':22,'4-28':22,'4-29':22,'5-1':23,'5-2':23,'5-3':23,'5-4':23,'5-5':23,
+    '5-8':24,'5-9':24,'5-10':24,'5-11':24,'5-12':24,'5-15':25,'5-16':25,'5-17':25,'5-18':25,'5-19':25,
+    '5-22':26,'5-23':26,'5-24':26,'5-25':26,'5-26':26,'5-29':27,'5-30':27,'6-1':27,'6-2':27,'6-3':27,'6-4':27,'6-5':27,
+    '6-6':28,'6-7':28,'6-8':28,'6-9':28,'6-10':28,'6-13':29,'6-14':29,'6-15':29,'6-16':29,'6-17':29,
+    '6-20':30,'6-21':30,'6-22':30,'6-23':30,'6-24':30,'6-27':31,'6-28':31,'6-29':31,'6-30':31,'6-31':31,
+    '7-3':32,'7-4':32,'7-5':32,'7-6':32,'7-7':32,'7-10':33,'7-11':33,'7-12':33,'7-13':33,'7-14':33,
+    '7-17':34,'7-18':34,'7-19':34,'7-20':34,'7-21':34,'7-24':35,'7-25':35,'7-26':35,'7-27':35,'7-28':35,'7-31':36,
+    '8-1':36,'8-2':36,'8-3':36,'8-4':36,'8-5':36,'8-7':37,'8-8':37,'8-9':37,'8-10':37,'8-11':37,
+    '8-14':38,'8-15':38,'8-16':38,'8-17':38,'8-18':38,'8-21':39,'8-22':39,'8-23':39,'8-24':39,'8-25':39,
+    '8-28':40,'8-29':40,'8-30':40,'9-5':41,'9-6':41,'9-7':41,'9-8':41,'9-9':41,'9-12':42,'9-13':42,'9-14':42,'9-15':42,'9-16':42,
+    '9-19':43,'9-20':43,'9-21':43,'9-22':43,'9-23':43,'9-26':44,'9-27':44,'9-28':44,'9-29':44,'9-30':44,
+    '10-2':45,'10-3':45,'10-4':45,'10-5':45,'10-6':45,'10-9':46,'10-10':46,'10-11':46,'10-12':46,'10-13':46,
+    '10-16':47,'10-17':47,'10-18':47,'10-19':47,'10-20':47,'10-23':48,'10-24':48,'10-25':48,'10-26':48,'10-27':48,'10-30':49,
+    '11-1':49,'11-2':49,'11-3':49,'11-4':49,'11-5':49,'11-7':50,'11-8':50,'11-9':50,'11-10':50,'11-11':50,
+    '11-14':51,'11-15':51,'11-16':51,'11-17':51,'11-18':51,'11-21':52,'11-22':52,'11-23':52,'11-24':52,'11-25':52,
+    '11-28':53,'11-29':53,'11-30':53,'11-31':53
+};
+
+var mesActual = 0;
+var diaSel = null;
+
+function getColorNum(mes, dia, esFinSem) {
+    if (mes === 4 && dia === 1) return 'verde';
+    if (esFinSem) return 'negro';
+    var sem = semanaDia[mes + '-' + dia] || 1;
+    return coloresSemana[sem] || 'negro';
+}
+
+function generarCalendario(mes) {
+    var dias = mesesDias[mes];
+    var inicio = mesesInicio[mes];
+    var html = '';
+    var fila = '<tr>';
+    for (var i = 0; i < inicio; i++) fila += '<td style="background:#e8e0c8"></td>';
+    for (var d = 1; d <= dias; d++) {
+        var fecha = new Date(2026, mes, d);
+        var diaSem = fecha.getDay();
+        var esFinSem = (diaSem === 0 || diaSem === 6);
+        var color = getColorNum(mes, d, esFinSem);
+        
+        var fondo = '';
+        var key = mes + '-' + d;
+        if (fondosAzulClaro[key]) {
+            fondo = 'fondo-azul-claro';
+        } else if (fondosAmarillos[key]) {
+            fondo = 'fondo-amarillo';
+        } else if (fondosNaranja[key]) {
+            fondo = 'fondo-naranja';
+        } else if (esFinSem) {
+            fondo = 'fondo-gris';
+        } else {
+            fondo = 'fondo-blanco';
+        }
+        
+        var claseNum = color === 'rojo' ? 'rojo' : (color === 'verde' ? 'verde' : 'negro');
+        var notaKey = d + '/' + (mes+1);
+        var notaIcon = notas[notaKey] ? '<span class="nota-icon">📝</span>' : '';
+        fila += '<td class="' + fondo + '" onclick="seleccionarDia(' + mes + ',' + d + ')"><span class="num ' + claseNum + '">' + d + '</span>' + notaIcon + '</td>';
+        if ((inicio + d) % 7 === 0) { html += fila + '</tr>'; fila = '<tr>'; }
+    }
+    if (fila !== '<tr>') { 
+        while (fila.split('<td').length - 1 < 7) fila += '<td style="background:#e8e0c8"></td>'; 
+        html += fila + '</tr>'; 
+    }
+    document.getElementById('calendarioBody').innerHTML = html;
+}
+
+function seleccionarDia(mes, dia) {
+    diaSel = { mes: mes, dia: dia };
+    document.getElementById('fechaSel').innerHTML = '📅 ' + dia + ' de ' + meses[mes] + ' 2026';
+    var key = dia + '/' + (mes+1);
+    document.getElementById('notaTexto').value = notas[key] || '';
+}
+
+function guardarNota() {
+    if (!diaSel) { alert('Selecciona un día'); return; }
+    var key = diaSel.dia + '/' + (diaSel.mes+1);
+    var txt = document.getElementById('notaTexto').value;
+    if (txt.trim()) notas[key] = txt.trim();
+    else delete notas[key];
+    localStorage.setItem('notas_' + usuarioActual.id, JSON.stringify(notas));
+    generarCalendario(mesActual);
+    mostrarToast('✅ Nota guardada');
+}
+
+function cargarNotas() {
+    var s = localStorage.getItem('notas_' + usuarioActual.id);
+    notas = s ? JSON.parse(s) : {};
+}
+
+function actualizarResumenLaboral() {
+    var extras = 0, vac = 0, asu = 0;
+    for (var k in notas) {
+        var n = notas[k];
+        // Saltar notas de cumpleaños
+        if (esCumpleaños(n)) continue;
+        var lower = n.toLowerCase();
+        if (lower.indexOf('extra') !== -1) extras++;
+        if (lower.indexOf('vacacion') !== -1) vac++;
+        if (lower.indexOf('asunto') !== -1) asu++;
+    }
+    document.getElementById('totalExtras').innerText = extras;
+    document.getElementById('totalVac').innerText = vac;
+    document.getElementById('totalAsu').innerText = asu;
+    var html = '<h4>📋 Notas laborales:</h4>';
+    var hayLaborales = false;
+    for (var k in notas) {
+        var n = notas[k];
+        if (esCumpleaños(n)) continue;
+        hayLaborales = true;
+        html += '<div style="padding:8px;background:#f8f9fa;margin:5px 0;border-radius:8px"><strong>📅 ' + k + '</strong><br>✏️ ' + n + '</div>';
+    }
+    if (!hayLaborales) html += '<p>Sin notas laborales</p>';
+    document.getElementById('detalleNotas').innerHTML = html;
+}
+
+function actualizarResumenCumpleaños() {
+    var cumples = 0;
+    var html = '<h4>🎂 Lista de cumpleaños:</h4>';
+    var hayCumples = false;
+    for (var k in notas) {
+        var n = notas[k];
+        if (esCumpleaños(n)) {
+            cumples++;
+            hayCumples = true;
+            html += '<div style="padding:8px;background:#ffe8e8;margin:5px 0;border-radius:8px;border-left:4px solid #c41e3a"><strong>🎂 ' + k + '</strong><br>✏️ ' + n + '</div>';
+        }
+    }
+    document.getElementById('totalCumples').innerText = cumples;
+    if (!hayCumples) html += '<p>No hay cumpleaños registrados. Escribe "cumpleaños" en cualquier nota.</p>';
+    document.getElementById('detalleCumples').innerHTML = html;
+}
+
+function generarMeses() {
+    var nav = document.getElementById('mesesNav');
+    nav.innerHTML = '';
+    for (var i = 0; i < meses.length; i++) {
+        var btn = document.createElement('button');
+        btn.className = 'mes-btn';
+        if (i === 0) btn.classList.add('activo');
+        btn.textContent = meses[i];
+        btn.setAttribute('data-mes', i);
+        btn.onclick = (function(idx) {
+            return function() {
+                var btns = document.querySelectorAll('.mes-btn');
+                for (var j = 0; j < btns.length; j++) btns[j].classList.remove('activo');
+                this.classList.add('activo');
+                mesActual = idx;
+                generarCalendario(idx);
+                diaSel = null;
+                document.getElementById('fechaSel').innerHTML = 'Haz clic en un día';
+                document.getElementById('notaTexto').value = '';
+            };
+        })(i);
+        nav.appendChild(btn);
+    }
+}
+
+// ==================== LOGIN / REGISTRO ====================
+function cargarUsuarios() {
+    var s = localStorage.getItem('usuarios');
+    usuarios = s ? JSON.parse(s) : [];
+}
+
+function guardarUsuarios() { localStorage.setItem('usuarios', JSON.stringify(usuarios)); }
+
+function login() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var pass = document.getElementById('loginPass').value;
+    var err = document.getElementById('loginError');
+    if (!email || !pass) { err.innerText = '❌ Completa todos los campos'; return; }
+    var user = null;
+    for (var i = 0; i < usuarios.length; i++) {
+        if (usuarios[i].email === email && usuarios[i].pass === pass) {
+            user = usuarios[i];
+            break;
+        }
+    }
+    if (user) {
+        usuarioActual = user;
+        document.getElementById('userNameDisplay').innerHTML = '👤 ' + user.nombre + ' - ' + user.depto;
+        cargarNotas();
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        mostrarNombresEspeciales();
+        generarCalendario(0);
+        actualizarResumenLaboral();
+        actualizarResumenCumpleaños();
+        cargarMensajes();
+        actualizarChat();
+        actualizarListaUsuarios();
+        mostrarToast('✅ Bienvenido ' + user.nombre);
+    } else {
+        err.innerText = '❌ Email o contraseña incorrectos';
+    }
+}
+
+function registrar() {
+    var nom = document.getElementById('regNombre').value.trim();
+    var email = document.getElementById('regEmail').value.trim();
+    var depto = document.getElementById('regDepto').value.trim();
+    var pass = document.getElementById('regPass').value;
+    var err = document.getElementById('regError');
+    if (!nom || !email || !depto || !pass) { err.innerText = '❌ Completa todos los campos'; return; }
+    if (pass.length < 6) { err.innerText = '❌ Contraseña mínima 6 caracteres'; return; }
+    var existe = false;
+    for (var i = 0; i < usuarios.length; i++) {
+        if (usuarios[i].email === email) { existe = true; break; }
+    }
+    if (existe) { err.innerText = '❌ Email ya registrado'; return; }
+    var nuevo = { id: Date.now().toString(), nombre: nom, email: email, depto: depto, pass: pass };
+    usuarios.push(nuevo);
+    guardarUsuarios();
+    usuarioActual = nuevo;
+    document.getElementById('userNameDisplay').innerHTML = '👤 ' + nom + ' - ' + depto;
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    mostrarNombresEspeciales();
+    generarCalendario(0);
+    mostrarToast('✅ Registrado ' + nom);
+}
+
+function logout() {
+    usuarioActual = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginModal').style.display = 'flex';
+}
+
+// ==================== CHAT GENERAL ====================
+function cargarMensajes() {
+    var s = localStorage.getItem('chat_general');
+    mensajes = s ? JSON.parse(s) : [];
+}
+
+function guardarMensajes() { localStorage.setItem('chat_general', JSON.stringify(mensajes)); }
+
+function actualizarChat() {
+    var cont = document.getElementById('chatMsgs');
+    var html = '';
+    for (var i = 0; i < mensajes.length; i++) {
+        var m = mensajes[i];
+        html += '<div class="msg ' + (m.uid === (usuarioActual ? usuarioActual.id : null) ? 'envio' : 'recibe') + '"><div class="bubble"><strong>' + m.emisor + '</strong><br>' + m.texto + '</div><div style="font-size:0.7rem">' + m.hora + '</div></div>';
+    }
+    cont.innerHTML = html;
+    cont.scrollTop = cont.scrollHeight;
+}
+
+function enviarChat() {
+    var inp = document.getElementById('chatInput');
+    var txt = inp.value.trim();
+    if (txt && usuarioActual) {
+        mensajes.push({ id: Date.now(), emisor: usuarioActual.nombre, texto: txt, hora: new Date().toLocaleTimeString().slice(0,5), uid: usuarioActual.id });
+        guardarMensajes();
+        inp.value = '';
+        actualizarChat();
+    }
+}
+
+// ==================== CHATS PRIVADOS ====================
+function actualizarListaUsuarios() {
+    var cont = document.getElementById('usersList');
+    var otros = [];
+    for (var i = 0; i < usuarios.length; i++) {
+        if (usuarios[i].id !== (usuarioActual ? usuarioActual.id : null)) otros.push(usuarios[i]);
+    }
+    if (otros.length === 0) { cont.innerHTML = '<p>No hay otros usuarios</p>'; return; }
+    var html = '';
+    for (var i = 0; i < otros.length; i++) {
+        var u = otros[i];
+        html += '<div class="user-item" onclick="abrirPrivado(\'' + u.id + '\',\'' + u.nombre + '\')"><div><strong>👤 ' + u.nombre + '</strong><br><small>' + u.depto + '</small></div><button style="width:auto;padding:5px 12px">💬</button></div>';
+    }
+    cont.innerHTML = html;
+}
+
+window.abrirPrivado = function(id, nom) {
+    document.getElementById('chatCon').innerText = nom;
+    document.getElementById('chatPrivadoPanel').style.display = 'block';
+    var key = 'chat_' + usuarioActual.id + '_' + id;
+    var s = localStorage.getItem(key);
+    chatsPriv[id] = s ? JSON.parse(s) : [];
+    actualizarPriv(id);
+};
+
+function actualizarPriv(id) {
+    var cont = document.getElementById('privMsgs');
+    var msgs = chatsPriv[id] || [];
+    var html = '';
+    for (var i = 0; i < msgs.length; i++) {
+        var m = msgs[i];
+        html += '<div class="msg ' + (m.uid === usuarioActual.id ? 'envio' : 'recibe') + '"><div class="bubble">' + m.texto + '</div><div style="font-size:0.7rem">' + m.hora + '</div></div>';
+    }
+    cont.innerHTML = html;
+    cont.scrollTop = cont.scrollHeight;
+}
+
+function enviarPriv() {
+    var inp = document.getElementById('privInput');
+    var txt = inp.value.trim();
+    var nom = document.getElementById('chatCon').innerText;
+    var dest = null;
+    for (var i = 0; i < usuarios.length; i++) {
+        if (usuarios[i].nombre === nom) { dest = usuarios[i]; break; }
+    }
+    if (txt && usuarioActual && dest) {
+        if (!chatsPriv[dest.id]) chatsPriv[dest.id] = [];
+        chatsPriv[dest.id].push({ uid: usuarioActual.id, texto: txt, hora: new Date().toLocaleTimeString().slice(0,5) });
+        localStorage.setItem('chat_' + usuarioActual.id + '_' + dest.id, JSON.stringify(chatsPriv[dest.id]));
+        inp.value = '';
+        actualizarPriv(dest.id);
+    }
+}
+
+function mostrarToast(msg) {
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(function() { t.remove(); }, 2000);
+}
+
+// ==================== EVENTOS ====================
+document.getElementById('loginBtn').onclick = login;
+document.getElementById('regBtn').onclick = registrar;
+document.getElementById('showRegBtn').onclick = function() { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; };
+document.getElementById('showLoginBtn').onclick = function() { document.getElementById('loginForm').style.display = 'block'; document.getElementById('registerForm').style.display = 'none'; };
+document.getElementById('logoutBtn').onclick = logout;
+document.getElementById('guardarNota').onclick = guardarNota;
+document.getElementById('sendChat').onclick = enviarChat;
+document.getElementById('sendPriv').onclick = enviarPriv;
+document.getElementById('cerrarPriv').onclick = function() { document.getElementById('chatPrivadoPanel').style.display = 'none'; };
+document.getElementById('chatInput').onkeypress = function(e) { if(e.key === 'Enter') enviarChat(); };
+document.getElementById('privInput').onkeypress = function(e) { if(e.key === 'Enter') enviarPriv(); };
+
+// Sub-tabs del resumen
+var subTabs = document.querySelectorAll('.sub-tab');
+for (var i = 0; i < subTabs.length; i++) {
+    subTabs[i].onclick = function(btn) {
+        return function() {
+            var subId = btn.getAttribute('data-sub');
+            var allSubTabs = document.querySelectorAll('.sub-tab');
+            for (var j = 0; j < allSubTabs.length; j++) allSubTabs[j].classList.remove('active');
+            btn.classList.add('active');
+            document.getElementById('sub-laboral').style.display = 'none';
+            document.getElementById('sub-cumpleaños').style.display = 'none';
+            document.getElementById('sub-' + subId).style.display = 'block';
+            if (subId === 'laboral') actualizarResumenLaboral();
+            if (subId === 'cumpleaños') actualizarResumenCumpleaños();
+        };
+    }(subTabs[i]);
+}
+
+var tabs = document.querySelectorAll('.tab');
+for (var i = 0; i < tabs.length; i++) {
+    tabs[i].onclick = (function(btn) {
+        return function() {
+            var id = btn.getAttribute('data-tab');
+            var allTabs = document.querySelectorAll('.tab');
+            for (var j = 0; j < allTabs.length; j++) allTabs[j].classList.remove('active');
+            btn.classList.add('active');
+            var allPanels = document.querySelectorAll('.panel');
+            for (var j = 0; j < allPanels.length; j++) allPanels[j].classList.remove('active');
+            document.getElementById('panel-' + id).classList.add('active');
+            if(id === 'resumen') {
+                actualizarResumenLaboral();
+                actualizarResumenCumpleaños();
+            }
+            if(id === 'chat') actualizarChat();
+            if(id === 'privados') actualizarListaUsuarios();
+        };
+    })(tabs[i]);
+}
+
+cargarUsuarios();
+cargarMensajes();
+generarMeses();
+window.seleccionarDia = seleccionarDia;
+window.togglePassword = togglePassword;
+</script>
+</body>
+</html>
